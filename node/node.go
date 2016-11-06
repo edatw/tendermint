@@ -65,7 +65,7 @@ func NewNode(config cfg.Config, privValidator *types.PrivValidator, clientCreato
 	state := sm.GetState(config, stateDB)
 
 	// Create the proxyApp, which manages connections (consensus, mempool, query)
-	proxyApp := proxy.NewAppConns(config, clientCreator, state, blockStore)
+	proxyApp := proxy.NewAppConns(config, clientCreator, sm.NewHandshaker(state, blockStore))
 	if _, err := proxyApp.Start(); err != nil {
 		Exit(Fmt("Error starting proxy app connections: %v", err))
 	}
@@ -382,7 +382,7 @@ func newConsensusState(config cfg.Config) *consensus.ConsensusState {
 	state := sm.MakeGenesisStateFromFile(stateDB, config.GetString("genesis_file"))
 
 	// Create proxyAppConn connection (consensus, mempool, query)
-	proxyApp := proxy.NewAppConns(config, proxy.DefaultClientCreator(config), state, blockStore)
+	proxyApp := proxy.NewAppConns(config, proxy.DefaultClientCreator(config), sm.NewHandshaker(state, blockStore))
 	_, err := proxyApp.Start()
 	if err != nil {
 		Exit(Fmt("Error starting proxy app conns: %v", err))
